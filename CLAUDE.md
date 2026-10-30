@@ -15,12 +15,11 @@ TypeScript (strict), Vite with no UI framework, Vitest, Biome. Content lives in 
 
 ## Commands
 
-The project is not scaffolded yet. Once it is, these are the commands (see the design doc, "Tooling"):
+- `npm test` — full Vitest run.
+- `npm run check` — Biome lint and format check (`npx biome check --write .` fixes).
+- `npx tsc` — typecheck.
 
-- `npm run dev` — Vite dev server.
-- `npm run build` — typecheck, then production build into `dist/`.
-- `npm test` — full Vitest run, including the data-integrity test.
-- `npm run check` — Biome lint and format check.
+`npm run dev` and `npm run build` arrive with the UI (see the design doc, "Tooling" and "Implementation plan").
 
 ## Project-specific rules
 
