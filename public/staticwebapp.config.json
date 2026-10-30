@@ -1,0 +1,6 @@
+{
+  "globalHeaders": {
+    "Content-Security-Policy": "default-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'",
+    "X-Content-Type-Options": "nosniff"
+  }
+}
