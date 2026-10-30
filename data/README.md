@@ -6,9 +6,11 @@ Everything the generator says comes from the markdown files in this folder. Edit
 
 - `quirks.md`: one pool of quirks for every race and gender.
 - `names/<race>/first-male.md`, `first-female.md`, `first-other.md`: first names by gender. "other" covers other and non-binary.
-- `names/<race>/last.md`: last names for the race. Warforged can use designations or epithets here.
+- `names/<race>/last.md`: last names, for every race except dwarf and warforged.
 
-Races: dwarf, elf, gnome, halfling, half-elf, half-orc, human, warforged. Every race needs all four name files.
+Races: dwarf, elf, gnome, halfling, half-elf, half-orc, human, warforged. Every race needs the three first-name files.
+
+Dwarves have no `last.md`: a dwarf's last name is another first name from the same gender's file plus a suffix (`sen` male, `dottir` female, `kind` other), appended directly to the entry. Warforged have one name and no `last.md`. The suffixes live in the code (`LAST_NAME_RULES` in `src/npc.ts`). A `last.md` for either race is reported as an error.
 
 ## Format
 

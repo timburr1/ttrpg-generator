@@ -8,7 +8,7 @@ Status: draft for the first functional prototype. Date: 2026-10-30. Revised afte
 
 - A static single-page site, deployable to the Azure Static Web Apps free tier, that generates an NPC for a tabletop game master.
 - The DM picks a race and a gender, or leaves either (or both) random.
-- The result is a first name, a last name, and one small quirk.
+- The result is a first name, a surname (where the race has one), and one small quirk.
 - All content (names, quirks) lives in plain markdown files the DM edits without touching code.
 - A structure that stays simple now and absorbs more fields (occupation, appearance, motivation) later without a rewrite.
 
@@ -28,9 +28,10 @@ Functional:
 | --- | --- |
 | F1 | Race choices: dwarf, elf, gnome, halfling, half-elf, half-orc, human, warforged, plus "Random". |
 | F2 | Gender choices: male, female, other/NB, plus "Random". |
-| F3 | "Generate" produces first name, last name, and quirk, drawn from the content files. |
+| F3 | "Generate" produces a first name, a surname where the race has one, and a quirk, drawn from the content files. |
+| F3a | Surnames follow a per-race rule: a list (most races), a dwarf patronymic (another first name plus a gender suffix), or none (warforged have one name). |
 | F4 | A random race or gender is resolved before the draw, and the result shows the resolved race and gender. |
-| F5 | Each draw is uniform over the entries of its list. |
+| F5 | Each list draw is uniform over its entries. A random race is uniform; a random gender is weighted 46% male, 46% female, 8% other/NB. |
 | F6 | Content edits require no code change, only a rebuild and deploy. |
 
 Non-functional:
@@ -50,6 +51,7 @@ Non-functional:
 | Content format | Markdown bullet lists, one list per file | JSON is hostile to hand editing. One file per race needs a sectioned parser. One list per file is the simplest format that diffs well. |
 | Content delivery | Bundled into the JS at build time | Runtime `fetch` adds loading and failure states. Content is tens of KB. |
 | Races and genders | Closed `as const` arrays in code | A manifest would let the DM add a race without code, but a race also needs a label and, later, mechanics. Adding one is a one-line change plus data files, and the integrity test lists what is missing. |
+| Surname rules | A per-race rule table in code (`list`, `patronymic`, `none`), combined with the data at load time | Dwarf patronymics and single-name warforged are structural exceptions, not content. A closed set of three behaviors is code, not data. The suffixes sit in the same table, so the DM can change them in one place. |
 | Randomness | Injected `Rng` function, `Math.random` in production | Hard-coding `Math.random` makes the generator untestable. |
 | Hosting | Azure Static Web Apps, Free plan, GitHub Actions deploy | Blob static website needs a storage account and has no preview environments or header config. |
 | Lint and format | Biome, line width 160 | Per CLAUDE-typescript.md. |
@@ -73,7 +75,7 @@ Modules (all in `src/`):
 
 | Module | Responsibility | Touches |
 | --- | --- | --- |
-| `npc.ts` | `RACES`, `GENDERS`, labels, `Rng`, `NpcRequest`, `Npc`, `NpcData`, `rngPick`, `npcGenerate` | nothing external |
+| `npc.ts` | `RACES`, `GENDERS`, `GENDER_WEIGHTS`, `LAST_NAME_RULES`, labels, `Rng`, `NpcRequest`, `Npc`, `NpcData`, `rngPick`, `rngPickWeighted`, `npcGenerate` | nothing external |
 | `data-load.ts` | `dataParseList` (text to entries), `dataLoad` (file map to `NpcData`), `ErrorDataInvalid` | nothing external |
 | `data-files.ts` | The one `import.meta.glob` call; exports the file map | Vite |
 | `ui.ts` | Builds the form and card, reads the form, renders results and errors | DOM |
@@ -100,13 +102,38 @@ export type Npc = {
   readonly race: Race;
   readonly gender: Gender;
   readonly firstName: string;
-  readonly lastName: string;
+  readonly lastName: string | undefined; // undefined for races with a single name
   readonly quirk: string;
 };
 
+export const GENDER_WEIGHTS: Readonly<Record<Gender, number>> = { male: 46, female: 46, other: 8 };
+
+// How each race forms a surname. 'list' draws from data/names/<race>/last.md; 'patronymic' takes another first name from the NPC's own pool and appends the suffix for the NPC's gender.
+export type LastNameRule =
+  | { readonly kind: 'list' }
+  | { readonly kind: 'none' }
+  | { readonly kind: 'patronymic'; readonly suffix: Readonly<Record<Gender, string>> };
+
+export const LAST_NAME_RULES: Readonly<Record<Race, LastNameRule>> = {
+  dwarf: { kind: 'patronymic', suffix: { male: 'sen', female: 'dottir', other: 'kind' } },
+  warforged: { kind: 'none' },
+  elf: { kind: 'list' },
+  gnome: { kind: 'list' },
+  halfling: { kind: 'list' },
+  'half-elf': { kind: 'list' },
+  'half-orc': { kind: 'list' },
+  human: { kind: 'list' },
+};
+
+// A race's rule joined with its data, built by dataLoad.
+export type LastNameSource =
+  | { readonly kind: 'list'; readonly entries: readonly string[] }
+  | { readonly kind: 'none' }
+  | { readonly kind: 'patronymic'; readonly suffix: Readonly<Record<Gender, string>> };
+
 export type NpcData = {
   readonly namesFirst: Readonly<Record<Race, Readonly<Record<Gender, readonly string[]>>>>;
-  readonly namesLast: Readonly<Record<Race, readonly string[]>>;
+  readonly namesLast: Readonly<Record<Race, LastNameSource>>;
   readonly quirks: readonly string[];
 };
 ```
@@ -115,7 +142,7 @@ export type NpcData = {
 
 Labels are `Record<Race, string>` and `Record<Gender, string>`, so the compiler demands a label for each new race or gender. The form uses "Other / NB". The card uses its own shorter wording for the same value, so a result does not read "Dwarf, Other / NB". Label text is utilitarian and the DM can change it.
 
-Completeness is partly a compiler fact and partly a runtime one. The types say every race and gender has a list. `dataLoad` fills the records in a loop over `RACES` and `GENDERS`, so it needs one cast, justified because it directly follows validation of every key. `readonly string[]` cannot express "non-empty", so `rngPick` guards that itself (section 7).
+Completeness is partly a compiler fact and partly a runtime one. The types say every race and gender has a first-name list and every race has a surname source. `dataLoad` fills the records in a loop over `RACES` and `GENDERS`, so it needs one cast, justified because it directly follows validation of every key. `readonly string[]` cannot express "non-empty", so `rngPick` guards that itself (section 7).
 
 ## 6. Content files
 
@@ -129,13 +156,13 @@ data/
     dwarf/
       first-male.md
       first-female.md
-      first-other.md
-      last.md
-    elf/ ...                same four files per race
-    gnome/ halfling/ half-elf/ half-orc/ human/ warforged/
+      first-other.md        (no last.md: dwarf surnames are built from first names)
+    elf/ ...                first-male, first-female, first-other, and last
+    gnome/ halfling/ half-elf/ half-orc/ human/
+    warforged/              first-male, first-female, first-other (no last.md: one name)
 ```
 
-Thirty-three content files: 8 races times 4, plus quirks. Names are category first (`first-male`, `last`), so the first-name files group before `last.md` in a listing.
+Thirty files: 8 races times 3 first-name files, plus a `last.md` for each of the 6 list races, plus quirks. Names are category first (`first-male`, `last`), so the first-name files group before `last.md` in a listing.
 
 `data-files.ts` loads exactly two glob patterns, so `data/README.md` and any other stray file in `data/` are never loaded:
 
@@ -143,7 +170,7 @@ Thirty-three content files: 8 races times 4, plus quirks. Names are category fir
 import.meta.glob(['/data/quirks.md', '/data/names/**/*.md'], { query: '?raw', import: 'default', eager: true })
 ```
 
-Glob keys are root-absolute (`/data/names/dwarf/last.md`). `dataLoad` strips the leading `/` so error messages show repo-relative paths (`data/names/dwarf/last.md`).
+Glob keys are root-absolute (`/data/names/elf/last.md`). `dataLoad` strips the leading `/` so error messages show repo-relative paths (`data/names/elf/last.md`).
 
 ### Format
 
@@ -171,8 +198,8 @@ Entries are single-line plain text. Inline markdown is not interpreted and the U
 
 Errors name the file and, where one applies, the line:
 
-- Every file required by the race and gender sets exists.
-- No file under `data/names/` is unaccounted for (catches `data/names/elves/` and `first-nb.md`).
+- Every file the rules require exists: the three `first-*.md` files for every race, and `last.md` for each race whose rule is `list`.
+- No file under `data/names/` is unaccounted for. This catches `data/names/elves/` and `first-nb.md`, and a `last.md` under a `none` or `patronymic` race, with a message saying why the file is not used.
 - Every list has at least one entry.
 - No duplicate entries within a list. Comparison is case-insensitive after `normalize('NFC')` and trim, so a macOS paste and a Windows paste of `Zoë` collide. The error reports both line numbers. Curly and straight apostrophes are not folded.
 - Parse rules 1 and 4.
@@ -188,8 +215,9 @@ This machine has `core.autocrlf=true`, so checkouts are CRLF on Windows and LF i
 ### Authoring decisions this design makes
 
 - **Half-elf and half-orc have their own pools**, not computed from their parents. The DM can paste in names from the parent races.
-- **Warforged have all four files too.** Designations or epithets can go in `last.md` and show in the last-name position. A race with no last name is not supported yet (section 13).
-- **"Other / NB" has its own pool per race.** No automatic merge of male and female pools, because a hidden merge is the fallback CLAUDE.md prohibits.
+- **Warforged have one name.** Their rule is `none`, so they have the three first-name files and no `last.md`.
+- **Dwarf surnames are built.** The rule is `patronymic`: another first name from the dwarf pool of the NPC's own gender, plus a suffix (`sen` male, `dottir` female, `kind` other). The suffix is appended directly to the stem as written. Dwarves have no `last.md`.
+- **"Other / NB" has its own first-name file per race.** No automatic merge of male and female pools, because a hidden merge is the fallback CLAUDE.md prohibits.
 - **Quirks are global.** One pool for every race and gender.
 - **Quirks do not use pronouns.** The card cannot know which pronoun fits. The authoring guide says to write a fragment with no subject, not a sentence that starts with he, she, or they, and gives no sample quirk (the DM writes the content).
 
@@ -204,16 +232,40 @@ export function rngPick<T>(rng: Rng, items: readonly T[]): T {
   return item;
 }
 
+export function rngPickWeighted<T extends string>(rng: Rng, weights: Readonly<Record<T, number>>): T {
+  const entries = Object.entries<number>(weights) as [T, number][]; // keys are T by construction
+  let roll = rng() * entries.reduce((sum, [, weight]) => sum + weight, 0);
+  for (const [key, weight] of entries) {
+    if (roll < weight) {
+      return key;
+    }
+    roll -= weight;
+  }
+  throw new Error('rngPickWeighted: roll exceeded the total weight');
+}
+
 export function npcGenerate(request: NpcRequest, data: NpcData, rng: Rng): Npc {
   const race = request.race === 'random' ? rngPick(rng, RACES) : request.race;
-  const gender = request.gender === 'random' ? rngPick(rng, GENDERS) : request.gender;
-  return {
-    race,
-    gender,
-    firstName: rngPick(rng, data.namesFirst[race][gender]),
-    lastName: rngPick(rng, data.namesLast[race]),
-    quirk: rngPick(rng, data.quirks),
-  };
+  const gender = request.gender === 'random' ? rngPickWeighted(rng, GENDER_WEIGHTS) : request.gender;
+  const firstPool = data.namesFirst[race][gender];
+  const firstName = rngPick(rng, firstPool);
+  return { race, gender, firstName, lastName: lastNameDraw(data.namesLast[race], gender, firstPool, firstName, rng), quirk: rngPick(rng, data.quirks) };
+}
+
+function lastNameDraw(source: LastNameSource, gender: Gender, firstPool: readonly string[], firstName: string, rng: Rng): string | undefined {
+  switch (source.kind) {
+    case 'list':
+      return rngPick(rng, source.entries);
+    case 'none':
+      return undefined;
+    case 'patronymic': {
+      // Another first name: exclude the one just drawn, unless it is the only entry.
+      const others = firstPool.filter((name) => name !== firstName);
+      return rngPick(rng, others.length > 0 ? others : firstPool) + source.suffix[gender];
+    }
+    default:
+      return source satisfies never;
+  }
 }
 ```
 
@@ -221,8 +273,8 @@ export function npcGenerate(request: NpcRequest, data: NpcData, rng: Rng): Npc {
 
 Behavior stated plainly:
 
-- Draw order is fixed: race (if random), gender (if random), first name, last name, quirk. A scripted `Rng` therefore pins which draw feeds which field. Note the number of `rng` calls depends on which fields are random.
-- A random race is uniform over eight, a random gender uniform over three. No weighting: half-orcs and warforged appear as often as humans, and a third of fully random NPCs are other/NB. The DM can choose a race or gender to avoid that. Whether to weight is an open question (section 14).
+- Draw order is fixed: race (if random), gender (if random), first name, surname stem (list and patronymic races only), quirk. A scripted `Rng` therefore pins which draw feeds which field. Note the number of `rng` calls depends on which fields are random.
+- A random race is uniform over eight, so half-orcs and warforged appear as often as humans. A random gender is weighted 46% male, 46% female, 8% other/NB by `GENDER_WEIGHTS`, using one roll against the cumulative weights. A chosen race or gender is always honored.
 - Draws are independent, with no repeat-avoidance. Rolling many NPCs repeats names and quirks once pools are small.
 
 ## 8. UI
@@ -239,7 +291,7 @@ Behavior stated plainly:
 |  [ Generate ]                              |
 |                                            |
 |  +--------------------------------------+  |
-|  | [First] [Last]                       |  |
+|  | [First] [Last, if any]               |  |
 |  | [Race], [gender]                     |  |
 |  | Quirk: [quirk]                       |  |
 |  +--------------------------------------+  |
@@ -309,15 +361,17 @@ No `vite.config.ts`: Vite's and Vitest's defaults (root `index.html`, `**/*.test
 `data-load.test.ts`:
 
 - Parser: `-`, `*`, and `+` bullets; surrounding and leading whitespace; headings, blanks, and `>` notes skipped; CRLF, lone CR, and LF all work; a leading BOM and a non-breaking space after the marker are tolerated; a bare marker with no text is an error; a stray prose line is an error with the correct file and line and a quoted copy of the line.
-- Loader, using `data-fixture.ts` (a complete valid file map, broken one way per test): a complete map loads; a missing file, an unknown file, an empty list, and a duplicate (including an NFC and NFD pair) each raise `ErrorDataInvalid` naming the file; several problems are all reported in one error; duplicates across files are accepted.
+- Loader, using `data-fixture.ts` (a complete valid file map, broken one way per test): a complete map loads, with `none` and `patronymic` races carrying no entries; a missing file, an unknown file (including a `last.md` for dwarf or warforged), an empty list, and a duplicate (including an NFC and NFD pair) each raise `ErrorDataInvalid` naming the file; several problems are all reported in one error; duplicates across files are accepted.
 
 `npc.test.ts`, with a scripted `Rng` (`rngSequence([0, 0.5, 0.99])`) and fixture data whose entries are tagged by pool, so a draw from the wrong pool is detectable:
 
 - A fixed race and gender are honored and consume no draws.
-- A random race or gender resolves to a member of the sets; the scripted values `0` and `0.99` select the first and last.
-- First name comes from the resolved race and gender pool, last name from the race pool, quirk from the quirk pool. All 24 combinations covered.
+- A random race resolves to a member of the set; the scripted values `0` and `0.99` select the first and last.
+- Weighted gender: scripted rolls in each band map to male, female, and other, including both sides of each band edge (0.46 and 0.92); weights need not sum to 100.
+- First name comes from the resolved race and gender pool and the quirk from the quirk pool. All 24 combinations covered.
+- Surname rules: a `list` race draws from its list; warforged return `undefined` and consume no surname draw; a dwarf surname is a first name from the NPC's gender pool, never the drawn first name when the pool has two or more entries, followed by that gender's suffix; a one-entry pool reuses its entry.
 - Draw order: with a script of distinct values, each field reflects the intended position.
-- `rngPick` throws on an empty list and on an `Rng` returning `1`.
+- `rngPick` throws on an empty list and on an `Rng` returning `1`; `rngPickWeighted` throws on a roll past the total.
 
 Per the "don't pin user-facing copy" rule, tests assert pool membership and relations, never literal content beyond fixtures the tests author.
 
@@ -365,21 +419,20 @@ Each is a small change on this structure. None is built.
 - More fields (occupation, appearance): a list file, a field on `NpcData` and `Npc`, a card row. Derive the loader's required-file list from one table so the integrity test follows.
 - Race-specific quirks, pronoun tokens, weighted random race or gender, permalinks, copy to clipboard.
 - A service worker, if real offline use matters.
-- A race with no last name: an explicit marker such as a `> no surnames` note, so emptiness stays deliberate.
 
-## 15. Open questions for the DM
+## 15. Decisions made with the DM
 
-1. **"Other / NB" name lists.** Separate files per race (current). Or an explicit documented rule such as "other draws from male plus female", which saves authoring 8 files and is a one-function change?
-2. **Races without surnames.** Warforged (or others) showing only a first name needs the marker above. Wanted for the prototype?
-3. **Quirk wording.** Are pronoun-free fragments acceptable, or do you want pronoun support from the start?
-4. **Gender odds.** A fully random NPC is other/NB a third of the time. Keep uniform, or weight toward male and female?
+- Other / NB has its own first-name file per race.
+- Warforged have one name; dwarves build surnames from first names (`sen`, `dottir`, `kind`).
+- Pronoun-free quirk fragments are fine.
+- Random gender is 46% male, 46% female, 8% other/NB.
 
 ## 16. Implementation plan
 
 Each commit builds and passes its own tests.
 
 1. Docs and content: this design doc, the content stubs and `data/README.md`, `.gitattributes`.
-2. Scaffold and domain: `package.json`, tooling configs, `.nvmrc`, `index.html`, `src/npc.ts` with its tests and test support (`rng-sequence`, the valid `NpcData` fixture). CI workflow without the deploy step.
+2. Scaffold and domain: `package.json`, tooling configs, `.nvmrc`, `index.html`, `src/npc.ts` (including the surname rules and weighted gender) with its tests and test support (`rng-sequence`, the valid `NpcData` fixture). CI workflow without the deploy step.
 3. Data boundary: `data-load.ts`, `data-files.ts`, their tests, and the real-data integrity test against the stubs.
 4. UI: `ui.ts`, `main.ts`, `style.css`, smoke checklist.
 5. Deploy: `public/staticwebapp.config.json` and the deploy step. Needs the Azure resource and token, which is the DM's action.
