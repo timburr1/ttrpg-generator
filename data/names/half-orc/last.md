@@ -10,3 +10,8 @@
 - Carpenter
 - Miller
 - Barber
+- Skullcrusher
+- Nosebiter
+- Gutmuncher
+- Ratkiller
+- Swampstomper

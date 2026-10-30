@@ -10,3 +10,10 @@
 - Carpenter
 - Miller
 - Barber
+- Celembrian
+- Mooncloak
+- Gilthionel
+- Erowan
+- Overleaf
+- Duskmantle
+- Ashbow
