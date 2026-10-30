@@ -13,7 +13,7 @@ export type LastNameRule =
   | { readonly kind: 'patronymic'; readonly suffix: Readonly<Record<Gender, string>> };
 
 export const LAST_NAME_RULES: Readonly<Record<Race, LastNameRule>> = {
-  dwarf: { kind: 'patronymic', suffix: { male: 'sen', female: 'dottir', other: 'kind' } },
+  dwarf: { kind: 'patronymic', suffix: { male: 'ssen', female: 'sdottir', other: 'skind' } },
   warforged: { kind: 'none' },
   elf: { kind: 'list' },
   gnome: { kind: 'list' },
