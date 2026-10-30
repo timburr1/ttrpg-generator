@@ -10,7 +10,7 @@ Everything the generator says comes from the markdown files in this folder. Edit
 
 Races: dwarf, elf, gnome, halfling, half-elf, half-orc, human, warforged. Every race needs the three first-name files.
 
-Dwarves have no `last.md`: a dwarf's last name is another first name from the same gender's file plus a suffix (`sen` male, `dottir` female, `kind` other), appended directly to the entry. Warforged have one name and no `last.md`. The suffixes live in the code (`LAST_NAME_RULES` in `src/npc.ts`). A `last.md` for either race is reported as an error.
+Dwarves have no `last.md`: a dwarf's last name is another first name from the same gender's file plus a suffix (`ssen` male, `sdottir` female, `skind` other), appended directly to the entry. Warforged have one name and no `last.md`. The suffixes live in the code (`LAST_NAME_RULES` in `src/npc.ts`). A `last.md` for either race is reported as an error.
 
 ## Format
 

@@ -1,4 +1,12 @@
 # Dwarf: first names, male
 
-- [Dwarf First Male 1]
-- [Dwarf First Male 2]
+- Lief
+- Jarl
+- Snorri
+- Ulf
+- Gardi
+- Gunnar
+- Hall
+- Harald
+- Sigurd
+- Svein

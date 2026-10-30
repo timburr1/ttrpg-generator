@@ -1,4 +1,5 @@
 # Dwarf: first names, other
 
-- [Dwarf First Other 1]
-- [Dwarf First Other 2]
+- nb-dwarf-1
+- nb-dwarf-2 
+- nb-dwarf-3

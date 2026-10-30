@@ -1,4 +1,12 @@
 # Human: first names, male
 
-- [Human First Male 1]
-- [Human First Male 2]
+- Ethan
+- Emmen
+- Patrick
+- Malcolm
+- Robert
+- Wallace
+- Charles
+- Edward
+- Henry
+- William

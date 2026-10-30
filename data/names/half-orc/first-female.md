@@ -1,4 +1,9 @@
-# Half-Orc: first names, female
+# Half-Orc: first names- female
 
-- [Half-Orc First Female 1]
-- [Half-Orc First Female 2]
+- Canan
+- Drogheda
+- Goruza
+- Mazon
+- Shirish
+- Tevaga
+- Zeljka

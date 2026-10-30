@@ -1,4 +1,5 @@
 # Quirks
 
-- [Quirk 1]
-- [Quirk 2]
+- Missing an eye
+- Hypochondriac
+- Covered in flop sweat; this person is clearly hiding something

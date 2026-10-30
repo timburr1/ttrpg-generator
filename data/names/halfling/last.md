@@ -1,4 +1,5 @@
 # Halfling: last names
 
-- [Halfling Last 1]
-- [Halfling Last 2]
+- halfling-last-1
+- halfling-last-2
+- halfling-last-3

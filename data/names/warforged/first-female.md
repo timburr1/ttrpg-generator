@@ -1,4 +1,5 @@
 # Warforged: first names, female
 
-- [Warforged First Female 1]
-- [Warforged First Female 2]
+- warforged-female-1
+- warforged-female-2
+- warforged-female-3

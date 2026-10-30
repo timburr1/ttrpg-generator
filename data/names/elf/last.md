@@ -1,4 +1,5 @@
 # Elf: last names
 
-- [Elf Last 1]
-- [Elf Last 2]
+- elf-last-1
+- elf-last-2
+- elf-last-3

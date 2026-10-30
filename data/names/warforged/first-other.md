@@ -1,4 +1,5 @@
 # Warforged: first names, other
 
-- [Warforged First Other 1]
-- [Warforged First Other 2]
+- warforged-nb-1
+- warforged-nb-2
+- warforged-nb-3

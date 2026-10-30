@@ -1,4 +1,7 @@
 # Halfling: first names, male
 
-- [Halfling First Male 1]
-- [Halfling First Male 2]
+- Finnian
+- Samwell
+- halfling-male-1
+- halfling-male-2
+- halfling-male-3

@@ -115,7 +115,7 @@ export type LastNameRule =
   | { readonly kind: 'patronymic'; readonly suffix: Readonly<Record<Gender, string>> };
 
 export const LAST_NAME_RULES: Readonly<Record<Race, LastNameRule>> = {
-  dwarf: { kind: 'patronymic', suffix: { male: 'sen', female: 'dottir', other: 'kind' } },
+  dwarf: { kind: 'patronymic', suffix: { male: 'ssen', female: 'sdottir', other: 'skind' } },
   warforged: { kind: 'none' },
   elf: { kind: 'list' },
   gnome: { kind: 'list' },
@@ -216,7 +216,7 @@ This machine has `core.autocrlf=true`, so checkouts are CRLF on Windows and LF i
 
 - **Half-elf and half-orc have their own pools**, not computed from their parents. The DM can paste in names from the parent races.
 - **Warforged have one name.** Their rule is `none`, so they have the three first-name files and no `last.md`.
-- **Dwarf surnames are built.** The rule is `patronymic`: another first name from the dwarf pool of the NPC's own gender, plus a suffix (`sen` male, `dottir` female, `kind` other). The suffix is appended directly to the stem as written. Dwarves have no `last.md`.
+- **Dwarf surnames are built.** The rule is `patronymic`: another first name from the dwarf pool of the NPC's own gender, plus a suffix (`ssen` male, `sdottir` female, `skind` other). The suffix is appended directly to the stem as written. Dwarves have no `last.md`.
 - **"Other / NB" has its own first-name file per race.** No automatic merge of male and female pools, because a hidden merge is the fallback CLAUDE.md prohibits.
 - **Quirks are global.** One pool for every race and gender.
 - **Quirks do not use pronouns.** The card cannot know which pronoun fits. The authoring guide says to write a fragment with no subject, not a sentence that starts with he, she, or they, and gives no sample quirk (the DM writes the content).
@@ -423,7 +423,7 @@ Each is a small change on this structure. None is built.
 ## 15. Decisions made with the DM
 
 - Other / NB has its own first-name file per race.
-- Warforged have one name; dwarves build surnames from first names (`sen`, `dottir`, `kind`).
+- Warforged have one name; dwarves build surnames from first names (`ssen`, `sdottir`, `skind`).
 - Pronoun-free quirk fragments are fine.
 - Random gender is 46% male, 46% female, 8% other/NB.
 

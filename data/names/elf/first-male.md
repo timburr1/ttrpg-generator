@@ -1,4 +1,10 @@
 # Elf: first names, male
 
-- [Elf First Male 1]
-- [Elf First Male 2]
+- Caladrel
+- Heldalel
+- Lanliss
+- Meirdrarel
+- Seldlon
+- Talathel
+- Variel
+- Zordlon

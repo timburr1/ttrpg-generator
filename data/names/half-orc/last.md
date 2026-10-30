@@ -1,4 +1,12 @@
 # Half-Orc: last names
 
-- [Half-Orc Last 1]
-- [Half-Orc Last 2]
+- Fisher
+- Fletcher
+- Cooper
+- Smith
+- Miner
+- Granger
+- Taylor
+- Carpenter
+- Miller
+- Barber

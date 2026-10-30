@@ -1,4 +1,9 @@
-# Half-Orc: first names, male
+# Half-Orc: first names- male
 
-- [Half-Orc First Male 1]
-- [Half-Orc First Male 2]
+- Ausk
+- Davor
+- Hakak
+- Kizziar
+- Makoa
+- Nesteruk
+- Tsadok
