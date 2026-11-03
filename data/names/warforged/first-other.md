@@ -5,3 +5,8 @@
 - Golem
 - Cypher
 - Glaive
+- Harrier
+- Peregrine
+- Wander
+- Gadget
+- Clank

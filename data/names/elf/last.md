@@ -6,4 +6,7 @@
 - Erowan
 - Overleaf
 - Duskmantle
-- Ashbow
+- Silverbough
+- Dawnstrider
+- Starweaver
+- Mistwalker

@@ -10,3 +10,12 @@
 - Harald
 - Sigurd
 - Svein
+- Egil
+- Grettir
+- Njal
+- Gisli
+- Kormak
+- Bolli
+- Thorstein
+- Ketil
+- Hrafn

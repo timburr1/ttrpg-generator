@@ -6,3 +6,7 @@
 - Butler
 - Carrier
 - Hammer
+- Scythe
+- Thresher
+- Builder
+- Drover

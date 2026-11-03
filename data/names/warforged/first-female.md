@@ -5,3 +5,5 @@
 - Maidservant
 - Filigree
 - Metalica
+- Millstone
+- Shine

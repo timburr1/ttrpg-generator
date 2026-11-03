@@ -10,3 +10,13 @@
 - Gunnlaug
 - Gyda
 - Vigdis
+- Hallgerd
+- Bergthora
+- Aud
+- Helga
+- Thorgerd
+- Steinunn
+- Unn
+- Asdis
+- Thurid
+- Gudrid
