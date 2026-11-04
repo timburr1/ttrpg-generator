@@ -10,3 +10,13 @@
 - Carpenter
 - Miller
 - Barber
+- Weaver
+- Thatcher
+- Mason
+- Tanner
+- Baker
+- Wainwright
+- Cartwright
+- Shepherd
+- Archer
+- Chandler

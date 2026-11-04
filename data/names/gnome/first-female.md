@@ -8,4 +8,11 @@
 - Pai
 - Queck
 - Trig
-
+- Wibb
+- Tiznet
+- Pim
+- Nokka
+- Zibbet
+- Quill
+- Fenj
+- Dabi

@@ -4,4 +4,13 @@
 - Vin
 - Krono
 - Groya
-- Mork'n
+- Skarn
+- Dru
+- Vesh
+- Orla
+- Grix
+- Thok
+- Zhara
+- Bram
+- Urk
+- Nox

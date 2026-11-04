@@ -10,3 +10,10 @@
 - Margaret
 - Catherine
 - Julia
+- Beatrice
+- Rosalind
+- Eleanor
+- Philippa
+- Harriet
+- Cecily
+- Agnes

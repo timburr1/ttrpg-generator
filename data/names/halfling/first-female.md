@@ -5,3 +5,12 @@
 - Tulip
 - Zinnia
 - Violet
+- Marigold
+- Primrose
+- Poppy
+- Clover
+- Buttercup
+- Lavender
+- Pansy
+- Petunia
+- Willow

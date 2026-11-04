@@ -8,3 +8,13 @@
 - Maddela
 - Reda
 - Tamarie
+- Liriel
+- Sennet
+- Ysolde
+- Mirabel
+- Tavia
+- Ilsabet
+- Elowen
+- Rhosyn
+- Vesper
+- Annelise

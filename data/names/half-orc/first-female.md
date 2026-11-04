@@ -7,3 +7,11 @@
 - Shirish
 - Tevaga
 - Zeljka
+- Brakka
+- Ulgra
+- Mazka
+- Varusha
+- Hrasha
+- Zorka
+- Orsolya
+- Kasha

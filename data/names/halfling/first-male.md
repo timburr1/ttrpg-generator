@@ -5,3 +5,10 @@
 - Gregarious
 - Seamus
 - Clarucan
+- Wendell
+- Alfie
+- Bartleby
+- Rufus
+- Tobias
+- Oswin
+- Thaddeus

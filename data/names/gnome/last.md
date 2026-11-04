@@ -9,3 +9,8 @@
 - Versmucken
 - Kapuzzle
 - dan der Valoot
+- Bumblecrank
+- Wobblecog
+- Snickerdoodle
+- Pennywhack
+- van der Plonk

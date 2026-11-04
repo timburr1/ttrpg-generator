@@ -7,3 +7,12 @@
 - Poshment
 - Zarzuket
 - Zatqualmie
+- Gizmoldrake
+- Throckmeister
+- Bumblefarthen
+- Quillobar
+- Pernickle
+- Dribblethorn
+- Snodgrimble
+- Fanklewick
+- Tobbleston

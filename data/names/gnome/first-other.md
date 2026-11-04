@@ -4,3 +4,9 @@
 - Nazoot
 - Ribbley
 - Fortinax
+- Zuzu
+- Oddlebin
+- Pip
+- Skreeble
+- Marvelline
+- Cobbit

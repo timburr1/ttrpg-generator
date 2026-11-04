@@ -15,3 +15,16 @@
 - Gutmuncher
 - Ratkiller
 - Swampstomper
+- Eyegouger
+- Bogwader
+- Tuskhammer
+- Ironhide
+- Kneecapper
+- Marrowsucker
+- Stumpkicker
+- Wolfwrestler
+- Weaver
+- Thatcher
+- Mason
+- Tanner
+- Baker

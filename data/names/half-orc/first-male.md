@@ -7,3 +7,14 @@
 - Makoa
 - Nesteruk
 - Tsadok
+- Brug
+- Dorek
+- Gorash
+- Mirko
+- Uzdan
+- Vukan
+- Krag
+- Zoran
+- Tharn
+- Mork
+- Thorg

@@ -10,3 +10,10 @@
 - Wander
 - Gadget
 - Clank
+- Cog
+- Courier
+- Sprocket
+- Tinker
+- Pendulum
+- Beacon
+- Lathe

@@ -8,3 +8,13 @@
 - Quinray
 - Seltyiel
 - Zirul
+- Aldric
+- Teren
+- Corvin
+- Lorcan
+- Daelis
+- Eamon
+- Faolan
+- Rhys
+- Sylas
+- Tobiel

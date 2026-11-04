@@ -10,3 +10,9 @@
 - Thresher
 - Builder
 - Drover
+- Lamplighter
+- Anvil
+- Sentry
+- Cobbler
+- Bricklayer
+- Warden

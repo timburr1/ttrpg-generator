@@ -7,3 +7,7 @@
 - Metalica
 - Millstone
 - Shine
+- Lantern
+- Bell
+- Ember
+- Thimble

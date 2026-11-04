@@ -1,7 +1,13 @@
 # Half-Elf: first names, other
 
-- May
-- Kelcey
-- Bobbi
-- Max
 - Viridian
+- Ash
+- Wren
+- Linden
+- Sparrow
+- Indigo
+- Rue
+- Alder
+- Jules
+- Teal
+- Lark
