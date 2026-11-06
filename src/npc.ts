@@ -1,3 +1,5 @@
+import { type Rng, rngPick, rngPickWeighted } from './rng';
+
 export const RACES = ['dwarf', 'elf', 'gnome', 'halfling', 'half-elf', 'half-orc', 'human', 'warforged'] as const;
 export type Race = (typeof RACES)[number];
 
@@ -35,9 +37,6 @@ export type NpcData = {
   readonly quirks: readonly string[];
 };
 
-// Uniform in [0, 1), the Math.random contract.
-export type Rng = () => number;
-
 export type NpcRequest = { readonly race: Race | 'random'; readonly gender: Gender | 'random' };
 
 export type Npc = {
@@ -47,26 +46,6 @@ export type Npc = {
   readonly lastName: string | undefined; // undefined for races with a single name
   readonly quirk: string;
 };
-
-export function rngPick<T>(rng: Rng, items: readonly T[]): T {
-  const item = items[Math.floor(rng() * items.length)];
-  if (item === undefined) {
-    throw new Error(`rngPick: index out of range for a list of ${items.length}`);
-  }
-  return item;
-}
-
-export function rngPickWeighted<T extends string>(rng: Rng, weights: Readonly<Record<T, number>>): T {
-  const entries = Object.entries<number>(weights) as [T, number][]; // keys are T by construction
-  let roll = rng() * entries.reduce((sum, [, weight]) => sum + weight, 0);
-  for (const [key, weight] of entries) {
-    if (roll < weight) {
-      return key;
-    }
-    roll -= weight;
-  }
-  throw new Error('rngPickWeighted: roll exceeded the total weight');
-}
 
 export function npcGenerate(request: NpcRequest, data: NpcData, rng: Rng): Npc {
   const race = request.race === 'random' ? rngPick(rng, RACES) : request.race;

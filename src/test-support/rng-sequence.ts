@@ -1,4 +1,4 @@
-import type { Rng } from '../npc';
+import type { Rng } from '../rng';
 
 // A scripted Rng: returns the given values in order and throws when they run out, so a test also pins how many draws the code under test makes.
 export function rngSequence(values: readonly number[]): { readonly rng: Rng; readonly remaining: () => number } {
