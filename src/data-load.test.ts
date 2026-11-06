@@ -93,44 +93,44 @@ describe('dataLoad', () => {
 
   it('reports a missing file by path', () => {
     const files = dataFilesFixture();
-    delete files['data/names/elf/first-female.md'];
-    expect(problemsOf(files).some((problem) => problem.includes('data/names/elf/first-female.md'))).toBe(true);
+    delete files['data/npcs/names/elf/first-female.md'];
+    expect(problemsOf(files).some((problem) => problem.includes('data/npcs/names/elf/first-female.md'))).toBe(true);
   });
 
   it('reports an unknown file, and a last.md for a race that does not use one', () => {
-    const files = { ...dataFilesFixture(), 'data/names/elves/last.md': '- x', 'data/names/dwarf/last.md': '- x', 'data/names/warforged/last.md': '- x' };
+    const files = { ...dataFilesFixture(), 'data/npcs/names/elves/last.md': '- x', 'data/npcs/names/dwarf/last.md': '- x', 'data/npcs/names/warforged/last.md': '- x' };
     const problems = problemsOf(files);
     expect(problems).toHaveLength(3);
-    for (const path of ['data/names/elves/last.md', 'data/names/dwarf/last.md', 'data/names/warforged/last.md']) {
+    for (const path of ['data/npcs/names/elves/last.md', 'data/npcs/names/dwarf/last.md', 'data/npcs/names/warforged/last.md']) {
       expect(problems.some((problem) => problem.startsWith(path))).toBe(true);
     }
     expect(new Set(problems.map((problem) => problem.slice(problem.indexOf(':')))).size).toBeGreaterThan(1);
   });
 
   it('reports a list with no entries, including a file with only a heading', () => {
-    const files = { ...dataFilesFixture(), 'data/quirks.md': '# Quirks\n' };
-    expect(problemsOf(files)).toEqual([expect.stringContaining('data/quirks.md')]);
+    const files = { ...dataFilesFixture(), 'data/npcs/quirks.md': '# Quirks\n' };
+    expect(problemsOf(files)).toEqual([expect.stringContaining('data/npcs/quirks.md')]);
   });
 
   it('reports a duplicate with both line numbers, case-insensitively and across Unicode normalization forms', () => {
-    const files = { ...dataFilesFixture(), 'data/quirks.md': '- Zoë\n- other\n- zoë\n' };
+    const files = { ...dataFilesFixture(), 'data/npcs/quirks.md': '- Zoë\n- other\n- zoë\n' };
     const problems = problemsOf(files);
     expect(problems).toHaveLength(1);
-    expect(problems[0]).toContain('data/quirks.md:3');
+    expect(problems[0]).toContain('data/npcs/quirks.md:3');
     expect(problems[0]).toContain('line 1');
   });
 
   it('accepts the same entry in different files', () => {
     const files = dataFilesFixture();
-    files['data/names/elf/first-other.md'] = files['data/names/elf/first-male.md'] ?? '';
+    files['data/npcs/names/elf/first-other.md'] = files['data/npcs/names/elf/first-male.md'] ?? '';
     expect(() => dataLoad(files)).not.toThrow();
   });
 
   it('reports every problem in one error', () => {
     const files = dataFilesFixture();
-    delete files['data/names/human/last.md'];
-    files['data/quirks.md'] = 'stray prose';
-    files['data/names/elf/first-male.md'] = '- a\n- a';
+    delete files['data/npcs/names/human/last.md'];
+    files['data/npcs/quirks.md'] = 'stray prose';
+    files['data/npcs/names/elf/first-male.md'] = '- a\n- a';
     const problems = problemsOf(files);
     expect(problems.length).toBeGreaterThanOrEqual(3);
   });

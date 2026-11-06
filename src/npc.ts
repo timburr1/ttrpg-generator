@@ -6,7 +6,7 @@ export type Gender = (typeof GENDERS)[number];
 
 export const GENDER_WEIGHTS: Readonly<Record<Gender, number>> = { male: 46, female: 46, other: 8 };
 
-// How each race forms a surname. 'list' draws from data/names/<race>/last.md; 'patronymic' takes another first name from the NPC's own pool and appends the suffix for the NPC's gender.
+// How each race forms a surname. 'list' draws from data/npcs/names/<race>/last.md; 'patronymic' takes another first name from the NPC's own pool and appends the suffix for the NPC's gender.
 export type LastNameRule =
   | { readonly kind: 'list' }
   | { readonly kind: 'none' }

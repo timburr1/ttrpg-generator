@@ -1,0 +1,78 @@
+# Quirks
+
+- Missing an eye
+- Hypochondriac
+- Covered in flop sweat; this person is clearly hiding something
+- Missing two fingers on one hand, and vague about why
+- Ink-stained fingertips
+- Smells strongly of onions
+- Heterochromia, with one eye slightly clouded
+- Visible rope burn scars around both wrists
+- Hair dyed badly, with the roots showing
+- Dressed in fine clothes, none of which fit
+- Narrates their own actions aloud ("Now I'm picking up the mug")
+- Answers every question with a question
+- Pretends to be more literate than they are
+- Convinced a particular god is personally angry with them
+- Treats a pet cat as a trusted advisor
+
+# TODO, review these:
+- Hair in an elaborate braid with tiny bells woven in
+- Sporting a magnificent mustache, (which may or may not be an obvious fake)
+- Dressed head to toe in a single, aggressive color
+- Pockets visibly stuffed with bread
+- Wearing a scarf long enough to drag on the floor
+- Carrying an absurdly large spoon, openly and with pride
+- Boots that squeak with every step
+- Missing a front tooth, whistling through the gap on every S
+- Face painted with careful, unexplained stripes
+- Wearing a cooking pot as a helmet
+- A single, enormous feather in the cap, which keeps tickling someone
+- Speaks in an overly formal, courtly register to everyone, even the dog
+- Talks very loudly, as if everyone else were hard of hearing
+- Hums constantly, always the same tune
+- Peppers speech with invented swear words
+- Gives every sentence a dramatic pause, like a bad actor
+- Speaks only in very short sentences. Like this. Always.
+- Bows deeply on meeting anyone, and again on leaving
+- Names every object nearby and talks to it
+- Keeps a small, well-fed pet on one shoulder: a rat, a toad, or a very patient chicken
+- Draws or whittles during every conversation, and gives away the results
+- Winks constantly, with no clear meaning
+- Gesticulates wildly with both hands while talking
+- Hiccups every few sentences
+- Nods slowly before answering, as though consulting a council
+- Constantly ranking things out of ten, unprompted
+- Stands too close when talking
+- Wearing a monocle with no lens in it
+- Carrying a huge umbrella, indoors and out
+- Tiptoeing everywhere, as if sneaking up on someone
+- Wearing two gloves that don't match
+- Hat crowded with pins and badges from places never visited
+- Beard braided with tiny trinkets
+- One sleeve noticeably longer than the other
+- Coat patched with a hundred different fabrics
+- Necklace of keys, none of which fit anything
+- Shielding eyes from the sun, even indoors
+- Hair standing straight up, whatever is done to it
+- Hugging a pillow everywhere
+- Fingernails painted, each a different color
+- Trailing crumbs everywhere
+- Wearing a coat two sizes too big, clearly borrowed
+- Eyebrows drawn on in permanent surprise
+- Smells overpoweringly of cinnamon
+- Jingling with far too many rings
+- Introduces self with a long list of titles, mostly invented
+- Calls everyone by the wrong name, with total confidence
+- Repeats the last few words of whatever is said
+- Speaks in rhyme when excited
+- Sneezes loudly three times in a row, with no warning
+- Salutes everyone
+- Drums a rhythm on any nearby surface
+- Straightens every nearby mug, picture, and spoon
+- Cracks knuckles loudly before each sentence
+- Gasps theatrically at mundane news
+- Laughs at own jokes before finishing them
+- Rolls every R with great relish
+- Talks to a small hand puppet, and lets it answer
+- Scribbles in a tiny notebook while others speak

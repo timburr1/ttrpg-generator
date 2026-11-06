@@ -15,7 +15,7 @@ export class ErrorDataInvalid extends Error {
 export type DataEntry = { readonly text: string; readonly line: number };
 
 const ENTRY_PATTERN = /^[-*+](?:\s+(.*))?$/;
-const DATA_ROOT = 'data';
+const DATA_ROOT = 'data/npcs';
 
 // Quotes a line with everything outside printable ASCII escaped, so invisible characters (non-breaking space, BOM) show up in the message.
 function quote(line: string): string {

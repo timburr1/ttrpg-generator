@@ -44,13 +44,13 @@ export function dataFixture(): NpcData {
 
 // A complete, valid file map shaped like the real data/ folder, for tests that break one thing at a time.
 export function dataFilesFixture(): Record<string, string> {
-  const files: Record<string, string> = { 'data/quirks.md': '# Quirks\n\n- quirk-a\n- quirk-b\n' };
+  const files: Record<string, string> = { 'data/npcs/quirks.md': '# Quirks\n\n- quirk-a\n- quirk-b\n' };
   for (const race of RACES) {
     for (const gender of GENDERS) {
-      files[`data/names/${race}/first-${gender}.md`] = `# ${race} ${gender}\n\n- ${race}-${gender}-a\n- ${race}-${gender}-b\n`;
+      files[`data/npcs/names/${race}/first-${gender}.md`] = `# ${race} ${gender}\n\n- ${race}-${gender}-a\n- ${race}-${gender}-b\n`;
     }
     if (LAST_NAME_RULES[race].kind === 'list') {
-      files[`data/names/${race}/last.md`] = `# ${race} last\n\n- ${race}-last-a\n- ${race}-last-b\n`;
+      files[`data/npcs/names/${race}/last.md`] = `# ${race} last\n\n- ${race}-last-a\n- ${race}-last-b\n`;
     }
   }
   return files;
