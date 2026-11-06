@@ -1,6 +1,6 @@
-# TTRPG NPC Generator: Prototype Design
+# TTRPG Generator: Prototype Design
 
-Status: draft for the first functional prototype. Date: 2026-10-30. Revised after an adversarial design review.
+Status: draft for the first functional prototype. Date: 2026-10-30. Revised after an adversarial design review. Updated 2026-11-05: content moved under `data/npcs/`, a Tavern generator added, and the page split into panes (section 17).
 
 ## 1. Goals and non-goals
 
@@ -9,7 +9,8 @@ Status: draft for the first functional prototype. Date: 2026-10-30. Revised afte
 - A static single-page site, deployable to the Azure Static Web Apps free tier, that generates an NPC for a tabletop game master.
 - The DM picks a race and a gender, or leaves either (or both) random.
 - The result is a first name, a surname (where the race has one), and one small quirk.
-- All content (names, quirks) lives in plain markdown files the DM edits without touching code.
+- All content (names, quirks, tavern tables) lives in plain markdown files the DM edits without touching code.
+- The page holds several generators as panes (NPC, Tavern, more later), switched by the URL hash.
 - A structure that stays simple now and absorbs more fields (occupation, appearance, motivation) later without a rewrite.
 
 ### Non-goals for the prototype
@@ -33,6 +34,9 @@ Functional:
 | F4 | A random race or gender is resolved before the draw, and the result shows the resolved race and gender. |
 | F5 | Each list draw is uniform over its entries. A random race is uniform; a random gender is weighted 46% male, 46% female, 8% other/NB. |
 | F6 | Content edits require no code change, only a rebuild and deploy. |
+| F7 | A Tavern pane generates a name ("The [first] [second]"), an innkeeper, the room tonight, and an odd building feature. |
+| F8 | Every list draw, including the tavern's, is uniform over the entries in its file. Die sizes in the source book are ignored, so the DM can add or remove entries freely. |
+| F9 | Panes are switched by links to `#npc`, `#tavern`, and so on. The hash selects the pane on load and on change; an empty or unknown hash selects the first. |
 
 Non-functional:
 
@@ -62,26 +66,30 @@ Non-functional:
 Data flows one way. Everything except `data-files.ts` and the UI is pure and testable without a DOM or Vite.
 
 ```
-data/*.md --(Vite glob, raw text)--> data-files.ts  exports Record<path, text>
+data/**/*.md --(Vite glob, raw text)--> data-files.ts  exports Record<path, text>
                                           |
                                   dataLoad(files)    parse + validate once
                                           |
-                                       NpcData       typed, trusted from here on
+                         { npc: NpcData, tavern: TavernData }   typed, trusted from here on
                                           |
- form --> NpcRequest --> npcGenerate(request, data, rng) --> Npc --> card
+ form --> NpcRequest --> npcGenerate(request, data.npc, rng) --> Npc --> card
+ button --> tavernGenerate(data.tavern, rng) --> Tavern --> card
 ```
 
 Modules (all in `src/`):
 
 | Module | Responsibility | Touches |
 | --- | --- | --- |
-| `npc.ts` | `RACES`, `GENDERS`, `GENDER_WEIGHTS`, `LAST_NAME_RULES`, labels, `Rng`, `NpcRequest`, `Npc`, `NpcData`, `rngPick`, `rngPickWeighted`, `npcGenerate` | nothing external |
-| `data-load.ts` | `dataParseList` (text to entries), `dataLoad` (file map to `NpcData`), `ErrorDataInvalid` | nothing external |
+| `rng.ts` | `Rng`, `rngPick`, `rngPickWeighted` | nothing external |
+| `npc.ts` | `RACES`, `GENDERS`, `GENDER_WEIGHTS`, `LAST_NAME_RULES`, `NpcRequest`, `Npc`, `NpcData`, `npcGenerate` | `rng` |
+| `tavern.ts` | `TavernData`, `Tavern`, `tavernGenerate` | `rng` |
+| `data-load.ts` | `dataParseList` (text to entries), `dataLoad` (file map to `{ npc, tavern }`), `FILES_TAVERN`, `ErrorDataInvalid` | nothing external |
 | `data-files.ts` | The one `import.meta.glob` call; exports the file map | Vite |
-| `ui.ts` | Builds the form and card, reads the form, renders results and errors | DOM |
-| `main.ts` | Wires `dataFiles`, `dataLoad`, `Math.random`, and `ui` together; logs and shows data errors | everything |
+| `ui.ts` | `elementMake`, the pane shell (title, nav links, panels, hash handling), the error panel | DOM |
+| `ui-npc.ts`, `ui-tavern.ts` | One pane each: controls, card, reads the form | DOM |
+| `main.ts` | Wires `dataFiles`, `dataLoad`, `Math.random`, and the panes together; logs and shows data errors | everything |
 
-Dependencies point one way: `data-load` imports types from `npc`; `npc` imports nothing. `data-files.ts` has no logic, so both `main.ts` and the real-data integrity test import it and load content identically.
+Dependencies point one way: `data-load` imports types from `npc` and `tavern`; `npc` and `tavern` import only `rng`; `rng` imports nothing. The pane modules import `elementMake` from `ui`, and `ui` never imports them (`main.ts` wires the panes in). `data-files.ts` has no logic, so both `main.ts` and the real-data integrity test import it and load content identically.
 
 Per CLAUDE-typescript.md, effects (randomness, the file map) are parameters at the entry point. `npc.ts` and `data-load.ts` never touch `Math.random`, `import.meta`, or the DOM.
 
@@ -93,8 +101,6 @@ export type Race = (typeof RACES)[number];
 
 export const GENDERS = ['male', 'female', 'other'] as const;
 export type Gender = (typeof GENDERS)[number];
-
-export type Rng = () => number; // uniform in [0, 1), the Math.random contract
 
 export type NpcRequest = { readonly race: Race | 'random'; readonly gender: Gender | 'random' };
 
@@ -108,7 +114,7 @@ export type Npc = {
 
 export const GENDER_WEIGHTS: Readonly<Record<Gender, number>> = { male: 46, female: 46, other: 8 };
 
-// How each race forms a surname. 'list' draws from data/names/<race>/last.md; 'patronymic' takes another first name from the NPC's own pool and appends the suffix for the NPC's gender.
+// How each race forms a surname. 'list' draws from data/npcs/names/<race>/last.md; 'patronymic' takes another first name from the NPC's own pool and appends the suffix for the NPC's gender.
 export type LastNameRule =
   | { readonly kind: 'list' }
   | { readonly kind: 'none' }
@@ -150,27 +156,33 @@ Completeness is partly a compiler fact and partly a runtime one. The types say e
 
 ```
 data/
-  README.md                 authoring guide (not loaded)
-  quirks.md                 one global pool
-  names/
-    dwarf/
-      first-male.md
-      first-female.md
-      first-other.md        (no last.md: dwarf surnames are built from first names)
-    elf/ ...                first-male, first-female, first-other, and last
-    gnome/ halfling/ half-elf/ half-orc/ human/
-    warforged/              first-male, first-female, first-other (no last.md: one name)
+  npcs/
+    README.md               authoring guide (not loaded)
+    quirks.md               one global pool
+    names/
+      dwarf/
+        first-male.md
+        first-female.md
+        first-other.md      (no last.md: dwarf surnames are built from first names)
+      elf/ ...              first-male, first-female, first-other, and last
+      gnome/ halfling/ half-elf/ half-orc/ human/
+      warforged/            first-male, first-female, first-other (no last.md: one name)
+  taverns/
+    README.md               authoring guide (not loaded)
+    name-first.md  name-second.md  innkeepers.md  rooms.md  features.md
 ```
 
-Thirty files: 8 races times 3 first-name files, plus a `last.md` for each of the 6 list races, plus quirks. Names are category first (`first-male`, `last`), so the first-name files group before `last.md` in a listing.
+Thirty NPC files (plus five tavern files): 8 races times 3 first-name files, plus a `last.md` for each of the 6 list races, plus quirks. Names are category first (`first-male`, `last`), so the first-name files group before `last.md` in a listing.
 
-`data-files.ts` loads exactly two glob patterns, so `data/README.md` and any other stray file in `data/` are never loaded:
+`data-files.ts` loads every markdown file under `data/` except READMEs, so a file the loader does not recognize is reported as an error instead of being silently ignored:
 
 ```ts
-import.meta.glob(['/data/quirks.md', '/data/names/**/*.md'], { query: '?raw', import: 'default', eager: true })
+import.meta.glob(['/data/**/*.md', '!/data/**/README.md'], { query: '?raw', import: 'default', eager: true })
 ```
 
-Glob keys are root-absolute (`/data/names/elf/last.md`). `dataLoad` strips the leading `/` so error messages show repo-relative paths (`data/names/elf/last.md`).
+Glob keys are root-absolute (`/data/npcs/names/elf/last.md`). `dataLoad` strips the leading `/` so error messages show repo-relative paths (`data/npcs/names/elf/last.md`).
+
+Vitest caches the transformed `data-files.ts` in `node_modules/.vitest-cache`, keyed by file content, and the cache does not notice new data files. If the integrity test reports a file as missing that exists on disk, delete that folder.
 
 ### Format
 
@@ -188,7 +200,7 @@ Parse rules. The file is split on `\r\n`, `\r`, or `\n`, and each line is trimme
 1. A line matching `^[-*+]\s+(.+)$` is an entry; the captured text is the entry. Indentation was trimmed away, so an indented bullet is an ordinary entry. A bullet marker with no text (`-`, `- `) is an error.
 2. Blank lines and lines starting with `#` are ignored.
 3. Lines starting with `>` are author notes and are ignored. To switch an entry off without deleting it, change its `-` to `>`.
-4. Any other line is an error, for example: `data/names/dwarf/first-male.md:7: expected a "- " entry, a "#" heading, or a "> " note, got "Grimli the Bold"`. The offending line is quoted with `JSON.stringify` so invisible characters (non-breaking space, odd Unicode) are visible.
+4. Any other line is an error, for example: `data/npcs/names/dwarf/first-male.md:7: expected a "- " entry, a "#" heading, or a "> " note, got "Grimli the Bold"`. The offending line is quoted with `JSON.stringify` so invisible characters (non-breaking space, odd Unicode) are visible.
 
 Rule 4 exists so a forgotten dash or a pasted paragraph fails loudly instead of silently dropping an entry. Thematic breaks (`---`, `- - -`) are not special: `---` is a rule 4 error, and `- - -` parses as the entry `- -`. The authoring guide does not mention them.
 
@@ -198,8 +210,9 @@ Entries are single-line plain text. Inline markdown is not interpreted and the U
 
 Errors name the file and, where one applies, the line:
 
-- Every file the rules require exists: the three `first-*.md` files for every race, and `last.md` for each race whose rule is `list`.
-- No file under `data/names/` is unaccounted for. This catches `data/names/elves/` and `first-nb.md`, and a `last.md` under a `none` or `patronymic` race, with a message saying why the file is not used.
+- Every file the rules require exists: the three `first-*.md` files for every race, `last.md` for each race whose rule is `list`, `quirks.md`, and the five tavern files (`FILES_TAVERN` in `data-load.ts`).
+- A tavern name word (`name-first.md`, `name-second.md`) must not start with "The", because the page adds it.
+- No file under `data/` is unaccounted for. This catches `data/npcs/names/elves/` and `first-nb.md`, and a `last.md` under a `none` or `patronymic` race, with a message saying why the file is not used.
 - Every list has at least one entry.
 - No duplicate entries within a list. Comparison is case-insensitive after `normalize('NFC')` and trim, so a macOS paste and a Windows paste of `Zoë` collide. The error reports both line numbers. Curly and straight apostrophes are not folded.
 - Parse rules 1 and 4.
@@ -222,6 +235,8 @@ This machine has `core.autocrlf=true`, so checkouts are CRLF on Windows and LF i
 - **Quirks do not use pronouns.** The card cannot know which pronoun fits. The authoring guide says to write a fragment with no subject, not a sentence that starts with he, she, or they, and gives no sample quirk (the DM writes the content).
 
 ## 7. Generation algorithm
+
+`Rng`, `rngPick`, and `rngPickWeighted` live in `rng.ts`; `npc.ts` and `tavern.ts` import them.
 
 ```ts
 export function rngPick<T>(rng: Rng, items: readonly T[]): T {
@@ -283,7 +298,8 @@ Behavior stated plainly:
 
 ```
 +--------------------------------------------+
-|  NPC Generator                             |
+|  TTRPG Generator                           |
+|  [NPC] [Tavern]                            |
 |                                            |
 |  Race    [ Random          v ]             |
 |  Gender  [ Random          v ]             |
@@ -334,11 +350,15 @@ If `dataLoad` throws `ErrorDataInvalid`, `main.ts` logs it with `console.error` 
     npc.ts            npc.test.ts
     data-load.ts      data-load.test.ts      data-real.test.ts
     data-files.ts
-    ui.ts
+    rng.ts            rng.test.ts
+    tavern.ts         tavern.test.ts
+    ui.ts             ui.test.ts
+    ui-npc.ts
+    ui-tavern.ts
     main.ts
     style.css
     test-support/
-      data-fixture.ts            builds a complete valid file map, and a valid NpcData
+      data-fixture.ts            builds a complete valid file map, and valid NpcData and TavernData
       rng-sequence.ts            scripted Rng: returns a fixed sequence of values
 ```
 
@@ -371,17 +391,17 @@ No `vite.config.ts`: Vite's and Vitest's defaults (root `index.html`, `**/*.test
 - First name comes from the resolved race and gender pool and the quirk from the quirk pool. All 24 combinations covered.
 - Surname rules: a `list` race draws from its list; warforged return `undefined` and consume no surname draw; a dwarf surname is a first name from the NPC's gender pool, never the drawn first name when the pool has two or more entries, followed by that gender's suffix; a one-entry pool reuses its entry.
 - Draw order: with a script of distinct values, each field reflects the intended position.
-- `rngPick` throws on an empty list and on an `Rng` returning `1`; `rngPickWeighted` throws on a roll past the total.
+- (`rngPick` and `rngPickWeighted` are tested in `rng.test.ts`: an empty list, an `Rng` returning `1`, and a roll past the total all throw.)
 
 Per the "don't pin user-facing copy" rule, tests assert pool membership and relations, never literal content beyond fixtures the tests author.
 
 ### Data-integrity test: `data-real.test.ts`
 
-Imports `data-files.ts`, the module the app uses, and runs `dataLoad` on the real `data/`. It asserts structure only. CI runs it before deploy, so a malformed edit blocks the release. A DM editing on github.com sees a failed check and must read the Actions log, which prints the full problem list. `data/README.md` says so.
+Imports `data-files.ts`, the module the app uses, and runs `dataLoad` on the real `data/`. It asserts structure only. CI runs it before deploy, so a malformed edit blocks the release. A DM editing on github.com sees a failed check and must read the Actions log, which prints the full problem list. `data/npcs/README.md` says so.
 
 ### Not unit tested
 
-`ui.ts` and `main.ts` have no useful seam at this size. Manual smoke checklist:
+The pane choice (`uiPaneFind`) is a pure function and is tested in `ui.test.ts`. The DOM code in `ui*.ts` and `main.ts` has no useful seam at this size. Manual smoke checklist:
 
 1. `npm run dev`: form renders, no NPC card yet.
 2. Generate with Random/Random several times: race and gender vary.
@@ -389,7 +409,8 @@ Imports `data-files.ts`, the module the app uses, and runs `dataLoad` on the rea
 4. Break a data file with a stray prose line: the error panel names the file and line. Revert.
 5. Keyboard only: Tab to controls, arrow keys on selects, Space or Enter on the button.
 6. Phone width and dark mode look right.
-7. On the deployed preview, the browser console shows no CSP violations.
+7. Panes: click each nav link; load `/#tavern` directly; Back and Forward switch panes; an unknown hash and `#%` show the NPC pane; results survive switching away and back.
+8. On the deployed preview, the browser console shows no CSP violations.
 
 ## 12. Build and deployment (Azure Static Web Apps, Free plan)
 
@@ -408,7 +429,7 @@ Imports `data-files.ts`, the module the app uses, and runs `dataLoad` on the rea
 - No backend, cookies, storage, third-party requests, or analytics.
 - Content is rendered with `textContent`, never `innerHTML`, so an entry containing markup displays literally. The CSP is the second layer.
 - The content files come from the same repo, but the parser still treats them as untrusted text: it validates structure and renders as text.
-- The repo is public and the content is bundled into the page, so every name and quirk is public. That matters only if the DM later adds campaign secrets.
+- The repo is public and the content is bundled into the page, so every name, quirk, and tavern table is public. That matters only if the DM later adds campaign secrets.
 - Supply chain: dev dependencies only, locked, installed with `npm ci`.
 
 ## 14. Later, not designed in detail
@@ -436,3 +457,20 @@ Each commit builds and passes its own tests.
 3. Data boundary: `data-load.ts`, `data-files.ts`, their tests, and the real-data integrity test against the stubs.
 4. UI: `ui.ts`, `main.ts`, `style.css`, smoke checklist.
 5. Deploy: `public/staticwebapp.config.json` and the deploy step. Needs the Azure resource and token, which is the DM's action.
+
+## 17. Tavern pane and pane switching (2026-11-05)
+
+### Tavern
+
+- Source: the DM's own book, transcribed once at their request with bold and italic removed. The tables are public through the bundle.
+- A tavern is `{ name, innkeeper, room, feature }`. The name is `The ${nameFirst} ${nameSecond}`, so entries in `name-first.md` and `name-second.md` must not start with "The".
+- Draw order: name first word, name second word, innkeeper, room, feature. Draws are uniform over each file, whatever the die in the book.
+- Required files are the values of `FILES_TAVERN` in `data-load.ts`. The tavern files go through the same parse, empty, and duplicate checks as NPC files, and the same single `ErrorDataInvalid` lists problems from both folders.
+- Not built: the book's secrets, patrons, rumors, menu, trouble, and loot tables.
+
+### Panes
+
+- `uiMount` shows a title, a `<nav aria-label="Generators">` of links (`#npc`, `#tavern`), and one panel per pane. Each pane is built once and toggled with `hidden`, so its last result and form selections survive switching.
+- One `hashchange` listener plus an initial read decide the active pane. Links only change the hash, so back/forward, deep links, and open-in-new-tab share that path; keyboard use is native link use. The active link carries `aria-current="page"`. Panel ids are `pane-<id>` and form control ids are prefixed with their pane (`npc-race`), so a pane hash never matches an id and the browser does not scroll. The hash is compared as written, never decoded, so a malformed hash falls back to the first pane.
+- Adding a pane: a data folder and `*Data` type, a `*Generate` function, a `ui-*.ts` pane module, a loader entry, and one line in `main.ts`.
+- A malformed file in either data folder replaces the whole page with the error panel (dev-time only; the integrity test gates deploy).

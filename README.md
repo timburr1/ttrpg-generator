@@ -3,7 +3,7 @@
 ![](https://img.shields.io/github/contributors/timburr1/ttrpg-generator)
 ![](https://img.shields.io/github/last-commit/timburr1/ttrpg-generator)
 
-[TTRPG Generator](https://wonderful-meadow-038c5bc10.5.azurestaticapps.net/) is a static web page that rolls up NPCs for tabletop game masters. The first prototype generates a race-appropriate first name, last name, and a quirk, for a race and gender the DM picks or leaves random. It deploys to the Azure Static Web Apps free tier; there is no backend.
+[TTRPG Generator](https://wonderful-meadow-038c5bc10.5.azurestaticapps.net/) is a static web page of generators for tabletop game masters, switched by tab links. The NPC generator makes a race-appropriate first name, last name, and a quirk, for a race and gender the DM picks or leaves random. The Tavern generator makes a name, an innkeeper, the mood of the room, and an odd building feature. It deploys to the Azure Static Web Apps free tier; there is no backend.
 
 ```sh
 npm run dev    # Vite dev server
