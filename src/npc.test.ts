@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { GENDER_WEIGHTS, GENDERS, type Gender, LAST_NAME_RULES, npcGenerate, RACES } from './npc';
-import { dataFixture } from './test-support/data-fixture';
+import { dataFixtureNpc } from './test-support/data-fixture';
 import { rngSequence } from './test-support/rng-sequence';
 
 function dwarfSuffix(gender: Gender): string {
@@ -20,7 +20,7 @@ describe('GENDER_WEIGHTS', () => {
 });
 
 describe('npcGenerate', () => {
-  const data = dataFixture();
+  const data = dataFixtureNpc();
 
   it('honors a fixed race and gender and draws only first name, surname, and quirk', () => {
     const { rng, remaining } = rngSequence([0.5, 0.5, 0.5]);

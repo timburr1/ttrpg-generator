@@ -1,4 +1,5 @@
 import { GENDERS, type Gender, LAST_NAME_RULES, type LastNameSource, type NpcData, RACES, type Race } from './npc';
+import type { TavernData } from './tavern';
 
 export class ErrorDataInvalid extends Error {
   readonly problems: readonly string[];
@@ -15,7 +16,7 @@ export class ErrorDataInvalid extends Error {
 export type DataEntry = { readonly text: string; readonly line: number };
 
 const ENTRY_PATTERN = /^[-*+](?:\s+(.*))?$/;
-const DATA_ROOT = 'data/npcs';
+const ROOT_NPC = 'data/npcs';
 
 // Quotes a line with everything outside printable ASCII escaped, so invisible characters (non-breaking space, BOM) show up in the message.
 function quote(line: string): string {
@@ -46,17 +47,29 @@ export function dataParseList(text: string, path: string): { entries: DataEntry[
 }
 
 function pathFirst(race: Race, gender: Gender): string {
-  return `${DATA_ROOT}/names/${race}/first-${gender}.md`;
+  return `${ROOT_NPC}/names/${race}/first-${gender}.md`;
 }
 
 function pathLast(race: Race): string {
-  return `${DATA_ROOT}/names/${race}/last.md`;
+  return `${ROOT_NPC}/names/${race}/last.md`;
 }
 
-const PATH_QUIRKS = `${DATA_ROOT}/quirks.md`;
+const PATH_QUIRKS = `${ROOT_NPC}/quirks.md`;
+
+const ROOT_TAVERN = 'data/taverns';
+
+export const FILES_TAVERN: Readonly<Record<keyof TavernData, string>> = {
+  nameFirst: `${ROOT_TAVERN}/name-first.md`,
+  nameSecond: `${ROOT_TAVERN}/name-second.md`,
+  innkeepers: `${ROOT_TAVERN}/innkeepers.md`,
+  rooms: `${ROOT_TAVERN}/rooms.md`,
+  features: `${ROOT_TAVERN}/features.md`,
+};
+
+const PATHS_NAME_WORD: ReadonlySet<string> = new Set([FILES_TAVERN.nameFirst, FILES_TAVERN.nameSecond]);
 
 function pathsExpected(): Set<string> {
-  const paths = new Set<string>([PATH_QUIRKS]);
+  const paths = new Set<string>([PATH_QUIRKS, ...Object.values(FILES_TAVERN)]);
   for (const race of RACES) {
     for (const gender of GENDERS) {
       paths.add(pathFirst(race, gender));
@@ -80,7 +93,7 @@ function problemUnexpected(path: string): string {
 }
 
 // Loads content from a map of file path to file text. Glob keys may carry a leading "/".
-export function dataLoad(files: Readonly<Record<string, string>>): NpcData {
+export function dataLoad(files: Readonly<Record<string, string>>): { npc: NpcData; tavern: TavernData } {
   const texts = new Map(Object.entries(files).map(([path, text]) => [path.replace(/^\//, ''), text]));
   const expected = pathsExpected();
   const problems: string[] = [];
@@ -108,6 +121,13 @@ export function dataLoad(files: Readonly<Record<string, string>>): NpcData {
         seen.set(key, entry.line);
       } else {
         problems.push(`${path}:${entry.line}: duplicate of line ${firstLine} (${quote(entry.text)})`);
+      }
+    }
+    if (PATHS_NAME_WORD.has(path)) {
+      for (const entry of parsed.entries) {
+        if (/^the\s/i.test(entry.text)) {
+          problems.push(`${path}:${entry.line}: starts with "The", which the page adds to the tavern name (${quote(entry.text)})`);
+        }
       }
     }
     if (parsed.entries.length === 0 && parsed.problems.length === 0) {
@@ -139,5 +159,12 @@ export function dataLoad(files: Readonly<Record<string, string>>): NpcData {
     RACES.map((race) => [race, Object.fromEntries(GENDERS.map((gender) => [gender, list(pathFirst(race, gender))]))]),
   ) as NpcData['namesFirst'];
   const namesLast = Object.fromEntries(RACES.map((race) => [race, namesLastFor(race)])) as NpcData['namesLast'];
-  return { namesFirst, namesLast, quirks: list(PATH_QUIRKS) };
+  const tavern: TavernData = {
+    nameFirst: list(FILES_TAVERN.nameFirst),
+    nameSecond: list(FILES_TAVERN.nameSecond),
+    innkeepers: list(FILES_TAVERN.innkeepers),
+    rooms: list(FILES_TAVERN.rooms),
+    features: list(FILES_TAVERN.features),
+  };
+  return { npc: { namesFirst, namesLast, quirks: list(PATH_QUIRKS) }, tavern };
 }

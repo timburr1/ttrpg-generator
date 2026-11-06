@@ -1,0 +1,22 @@
+# Tavern name, first word
+
+- Crooked
+- Drowned
+- Gilded
+- Weeping
+- Laughing
+- Lusty
+- Three-Legged
+- Sleeping
+- Broken
+- Wandering
+- Blind
+- Painted
+- Lucky
+- Hollow
+- Last
+- Bleeding
+- Silver
+- Honest
+- Burning
+- Forgotten

@@ -11,7 +11,7 @@ if (root === null) {
 
 try {
   const data = dataLoad(dataFiles);
-  uiMount(root, (request) => npcGenerate(request, data, Math.random));
+  uiMount(root, (request) => npcGenerate(request, data.npc, Math.random));
 } catch (error) {
   console.error(error);
   if (error instanceof ErrorDataInvalid) {

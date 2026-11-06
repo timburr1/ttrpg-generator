@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dataLoad, dataParseList, ErrorDataInvalid } from './data-load';
+import { dataLoad, dataParseList, ErrorDataInvalid, FILES_TAVERN } from './data-load';
 import { GENDERS, RACES } from './npc';
 import { dataFilesFixture } from './test-support/data-fixture';
 
@@ -74,7 +74,7 @@ describe('dataLoad', () => {
   });
 
   it('gives every race and gender a first-name list and every race a surname source', () => {
-    const data = dataLoad(dataFilesFixture());
+    const data = dataLoad(dataFilesFixture()).npc;
     for (const race of RACES) {
       expect(data.namesLast[race]).toBeDefined();
       for (const gender of GENDERS) {
@@ -85,7 +85,7 @@ describe('dataLoad', () => {
   });
 
   it('turns a list race into entries and leaves dwarf and warforged without any', () => {
-    const data = dataLoad(dataFilesFixture());
+    const data = dataLoad(dataFilesFixture()).npc;
     expect(data.namesLast.elf.kind).toBe('list');
     expect(data.namesLast.dwarf.kind).toBe('patronymic');
     expect(data.namesLast.warforged.kind).toBe('none');
@@ -98,7 +98,12 @@ describe('dataLoad', () => {
   });
 
   it('reports an unknown file, and a last.md for a race that does not use one', () => {
-    const files = { ...dataFilesFixture(), 'data/npcs/names/elves/last.md': '- x', 'data/npcs/names/dwarf/last.md': '- x', 'data/npcs/names/warforged/last.md': '- x' };
+    const files = {
+      ...dataFilesFixture(),
+      'data/npcs/names/elves/last.md': '- x',
+      'data/npcs/names/dwarf/last.md': '- x',
+      'data/npcs/names/warforged/last.md': '- x',
+    };
     const problems = problemsOf(files);
     expect(problems).toHaveLength(3);
     for (const path of ['data/npcs/names/elves/last.md', 'data/npcs/names/dwarf/last.md', 'data/npcs/names/warforged/last.md']) {
@@ -133,5 +138,48 @@ describe('dataLoad', () => {
     files['data/npcs/names/elf/first-male.md'] = '- a\n- a';
     const problems = problemsOf(files);
     expect(problems.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('loads each tavern list from its own file', () => {
+    const { tavern } = dataLoad(dataFilesFixture());
+    for (const key of Object.keys(FILES_TAVERN) as (keyof typeof FILES_TAVERN)[]) {
+      expect(tavern[key]).toEqual([`${key}-a`, `${key}-b`]);
+    }
+  });
+
+  it('reports a tavern name word that starts with "The", and accepts one that merely contains it', () => {
+    const files = { ...dataFilesFixture(), [FILES_TAVERN.nameFirst]: '- The Crooked\n- Other\n', [FILES_TAVERN.nameSecond]: '- Theatre\n- Gather\n' };
+    const problems = problemsOf(files);
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toContain(`${FILES_TAVERN.nameFirst}:1`);
+  });
+
+  it('reports a missing, empty, or duplicated tavern file by path', () => {
+    const files = dataFilesFixture();
+    delete files[FILES_TAVERN.rooms];
+    files[FILES_TAVERN.features] = '# Features\n';
+    files[FILES_TAVERN.innkeepers] = '- a\n- A\n';
+    const problems = problemsOf(files);
+    expect(problems).toHaveLength(3);
+    for (const path of [FILES_TAVERN.rooms, FILES_TAVERN.features, FILES_TAVERN.innkeepers]) {
+      expect(problems.some((problem) => problem.includes(path))).toBe(true);
+    }
+  });
+
+  it('reports an unknown file in the taverns folder, and a README (which the glob, not the loader, excludes)', () => {
+    const files = { ...dataFilesFixture(), 'data/taverns/rumors.md': '- x', 'data/taverns/README.md': '# Guide' };
+    const problems = problemsOf(files);
+    expect(problems).toHaveLength(2);
+    expect(problems.some((problem) => problem.startsWith('data/taverns/rumors.md'))).toBe(true);
+    expect(problems.some((problem) => problem.startsWith('data/taverns/README.md'))).toBe(true);
+  });
+
+  it('reports problems from the npc and tavern files in one error', () => {
+    const files = dataFilesFixture();
+    files['data/npcs/quirks.md'] = 'stray prose';
+    delete files[FILES_TAVERN.nameFirst];
+    const problems = problemsOf(files);
+    expect(problems.some((problem) => problem.startsWith('data/npcs/quirks.md'))).toBe(true);
+    expect(problems.some((problem) => problem.startsWith(FILES_TAVERN.nameFirst))).toBe(true);
   });
 });

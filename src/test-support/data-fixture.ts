@@ -1,4 +1,6 @@
+import { FILES_TAVERN } from '../data-load';
 import { GENDERS, type Gender, LAST_NAME_RULES, type LastNameSource, type NpcData, RACES, type Race } from '../npc';
+import type { TavernData } from '../tavern';
 
 const POOL_SIZE = 3;
 
@@ -16,7 +18,7 @@ function namesLastFor(race: Race): LastNameSource {
 }
 
 // Every entry is tagged with its pool (`dwarf-first-female-2`), so a draw from the wrong pool is visible in the result.
-export function dataFixture(): NpcData {
+export function dataFixtureNpc(): NpcData {
   return {
     namesFirst: {
       dwarf: namesFirstFor('dwarf'),
@@ -42,6 +44,17 @@ export function dataFixture(): NpcData {
   };
 }
 
+// Same tagging for the tavern lists.
+export function dataFixtureTavern(): TavernData {
+  return {
+    nameFirst: pool('name-first'),
+    nameSecond: pool('name-second'),
+    innkeepers: pool('innkeeper'),
+    rooms: pool('room'),
+    features: pool('feature'),
+  };
+}
+
 // A complete, valid file map shaped like the real data/ folder, for tests that break one thing at a time.
 export function dataFilesFixture(): Record<string, string> {
   const files: Record<string, string> = { 'data/npcs/quirks.md': '# Quirks\n\n- quirk-a\n- quirk-b\n' };
@@ -52,6 +65,9 @@ export function dataFilesFixture(): Record<string, string> {
     if (LAST_NAME_RULES[race].kind === 'list') {
       files[`data/npcs/names/${race}/last.md`] = `# ${race} last\n\n- ${race}-last-a\n- ${race}-last-b\n`;
     }
+  }
+  for (const [key, path] of Object.entries(FILES_TAVERN)) {
+    files[path] = `# ${key}\n\n- ${key}-a\n- ${key}-b\n`;
   }
   return files;
 }

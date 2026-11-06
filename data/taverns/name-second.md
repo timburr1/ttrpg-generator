@@ -1,0 +1,22 @@
+# Tavern name, second word
+
+- Lantern
+- Goose
+- Anvil
+- Badger
+- Kettle
+- Saint
+- Hound
+- Oar
+- Crown
+- Eel
+- Mermaid
+- Gallows
+- Barrel
+- Stag
+- Candle
+- Widow
+- Pig
+- Thief
+- Bishop
+- Wheel
