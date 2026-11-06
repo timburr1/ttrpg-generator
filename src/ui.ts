@@ -1,21 +1,8 @@
-import { GENDERS, type Gender, type Npc, type NpcRequest, RACES, type Race } from './npc';
+const TITLE = 'TTRPG Generator';
 
-const RACE_LABELS: Readonly<Record<Race, string>> = {
-  dwarf: 'Dwarf',
-  elf: 'Elf',
-  gnome: 'Gnome',
-  halfling: 'Halfling',
-  'half-elf': 'Half-elf',
-  'half-orc': 'Half-orc',
-  human: 'Human',
-  warforged: 'Warforged',
-};
+export type UiPane = { readonly id: string; readonly label: string; readonly element: HTMLElement };
 
-const GENDER_LABELS: Readonly<Record<Gender, string>> = { male: 'Male', female: 'Female', other: 'Other / NB' };
-
-const GENDER_CARD_LABELS: Readonly<Record<Gender, string>> = { male: 'male', female: 'female', other: 'other / NB' };
-
-function elementMake<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, className?: string): HTMLElementTagNameMap[K] {
+export function elementMake<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, className?: string): HTMLElementTagNameMap[K] {
   const element = document.createElement(tag);
   if (text !== undefined) {
     element.textContent = text;
@@ -26,67 +13,41 @@ function elementMake<K extends keyof HTMLElementTagNameMap>(tag: K, text?: strin
   return element;
 }
 
-function selectField(id: string, labelText: string, choices: readonly (readonly [string, string])[]): { field: HTMLElement; select: HTMLSelectElement } {
-  const field = elementMake('div', undefined, 'field');
-  const label = elementMake('label', labelText);
-  label.htmlFor = id;
-  const select = elementMake('select');
-  select.id = id;
-  for (const [value, text] of [['random', 'Random'], ...choices]) {
-    const option = elementMake('option', text);
-    option.value = value;
-    select.append(option);
-  }
-  field.append(label, select);
-  return { field, select };
+// The pane a hash such as "#tavern" names, or the first pane when the hash is empty or names none. The hash is compared as written: pane ids are plain ASCII, and decoding would throw on a malformed hash.
+export function uiPaneFind<T extends { readonly id: string }>(hash: string, panes: readonly [T, ...T[]]): T {
+  return panes.find((pane) => `#${pane.id}` === hash) ?? panes[0];
 }
 
-// The options are built from the allowed values, so anything else is a bug.
-function selectRead<T extends string>(select: HTMLSelectElement, allowed: readonly T[]): T | 'random' {
-  const found = allowed.find((value) => value === select.value);
-  if (found !== undefined) {
-    return found;
-  }
-  if (select.value === 'random') {
-    return 'random';
-  }
-  throw new Error(`select #${select.id} has unexpected value "${select.value}"`);
-}
-
-function cardRender(result: HTMLElement, npc: Npc): void {
-  const name = npc.lastName === undefined ? npc.firstName : `${npc.firstName} ${npc.lastName}`;
-  const card = elementMake('article', undefined, 'card');
-  card.append(
-    elementMake('h2', name),
-    elementMake('p', `${RACE_LABELS[npc.race]}, ${GENDER_CARD_LABELS[npc.gender]}`, 'meta'),
-    elementMake('p', `Quirk: ${npc.quirk}`),
-  );
-  result.replaceChildren(card);
-}
-
-export function uiMount(root: HTMLElement, generate: (request: NpcRequest) => Npc): void {
-  const race = selectField(
-    'race',
-    'Race',
-    RACES.map((value) => [value, RACE_LABELS[value]]),
-  );
-  const gender = selectField(
-    'gender',
-    'Gender',
-    GENDERS.map((value) => [value, GENDER_LABELS[value]]),
-  );
-  const button = elementMake('button', 'Generate');
-  button.type = 'button';
-  const result = elementMake('div', undefined, 'result');
-  result.setAttribute('aria-live', 'polite');
-
-  button.addEventListener('click', () => {
-    cardRender(result, generate({ race: selectRead(race.select, RACES), gender: selectRead(gender.select, GENDERS) }));
+// Links only change the hash, so back/forward and deep links share one code path.
+export function uiMount(root: HTMLElement, panes: readonly [UiPane, ...UiPane[]]): void {
+  const nav = elementMake('nav', undefined, 'panes');
+  nav.setAttribute('aria-label', 'Generators');
+  const shown = panes.map((pane) => {
+    const link = elementMake('a', pane.label);
+    link.href = `#${pane.id}`;
+    // Not the hash target itself, or the browser would scroll to the panel.
+    const panel = elementMake('div');
+    panel.id = `pane-${pane.id}`;
+    panel.append(pane.element);
+    nav.append(link);
+    return { pane, link, panel };
   });
 
-  const controls = elementMake('div', undefined, 'controls');
-  controls.append(race.field, gender.field, button);
-  root.replaceChildren(elementMake('h1', 'NPC Generator'), controls, result);
+  function paneActivate(): void {
+    const active = uiPaneFind(window.location.hash, panes);
+    for (const { pane, link, panel } of shown) {
+      panel.hidden = pane !== active;
+      if (pane === active) {
+        link.setAttribute('aria-current', 'page');
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    }
+  }
+
+  window.addEventListener('hashchange', paneActivate);
+  root.replaceChildren(elementMake('h1', TITLE), nav, ...shown.map(({ panel }) => panel));
+  paneActivate();
 }
 
 export function uiErrorShow(root: HTMLElement, problems: readonly string[]): void {
@@ -97,5 +58,5 @@ export function uiErrorShow(root: HTMLElement, problems: readonly string[]): voi
     list.append(elementMake('li', problem));
   }
   panel.append(elementMake('h2', 'Content files need fixing'), list);
-  root.replaceChildren(elementMake('h1', 'NPC Generator'), panel);
+  root.replaceChildren(elementMake('h1', TITLE), panel);
 }

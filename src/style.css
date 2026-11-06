@@ -47,6 +47,35 @@ h1 {
   font-size: 1.6rem;
 }
 
+[hidden] {
+  display: none;
+}
+
+.panes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.panes a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  color: var(--fg);
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+
+.panes a[aria-current="page"] {
+  color: var(--accent-fg);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
 .controls {
   display: grid;
   gap: 1rem;
